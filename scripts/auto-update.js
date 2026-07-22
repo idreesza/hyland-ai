@@ -1,3 +1,4 @@
+const https = require('https');
 const { createClient } = require('@supabase/supabase-js');
 
 const KIMI_API_KEY = process.env.KIMI_API_KEY;
@@ -6,14 +7,9 @@ const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function callKimi(platformName, scrapedData) {
-  const response = await fetch('https://api.moonshot.cn/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${KIMI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
+function callKimi(platformName, scrapedData) {
+  return new Promise((resolve, reject) => {
+    const postData = JSON.stringify({
       model: 'kimi-latest',
       messages: [
         {
@@ -49,15 +45,38 @@ Return raw JSON only. No markdown, no code blocks, no explanation.`
         }
       ],
       temperature: 0.3
-    })
-  });
+    });
 
-  const result = await response.json();
-  const content = result.choices[0].message.content;
-  
-  // Clean up any markdown formatting
-  const cleanJson = content.replace(/```json\n?|\n?```/g, '').trim();
-  return JSON.parse(cleanJson);
+    const options = {
+      hostname: 'api.moonshot.cn',
+      path: '/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${KIMI_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postData)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+          const content = result.choices[0].message.content;
+          const cleanJson = content.replace(/```json\n?|\n?```/g, '').trim();
+          resolve(JSON.parse(cleanJson));
+        } catch (e) {
+          reject(new Error(`Failed to parse response: ${data}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.write(postData);
+    req.end();
+  });
 }
 
 async function insertToSupabase(platformData) {
@@ -71,7 +90,6 @@ async function insertToSupabase(platformData) {
 }
 
 async function main() {
-  // List of new platforms to add (you can modify this or make it dynamic)
   const newPlatforms = [
     'Mistral Small 3',
     'Gemma 3 4B',
