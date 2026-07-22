@@ -8,20 +8,20 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           
       - run: npm ci
       
       - name: Run auto-update script
-        env:
-          KIMI_API_KEY: ${{ secrets.KIMI_API_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: node scripts/auto-update.js
 
       - name: Commit and push changes
