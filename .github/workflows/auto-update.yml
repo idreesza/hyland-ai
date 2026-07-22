@@ -21,6 +21,12 @@ jobs:
           
       - run: npm ci
       
+      - name: Check secrets loaded
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then echo "URL is EMPTY"; else echo "URL is set"; fi
+          if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then echo "KEY is EMPTY"; else echo "KEY is set"; fi
+          if [ -z "$KIMI_API_KEY" ]; then echo "KIMI is EMPTY"; else echo "KIMI is set"; fi
+      
       - name: Run auto-update script
         run: node scripts/auto-update.js
 
