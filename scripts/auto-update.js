@@ -64,6 +64,10 @@ Return raw JSON only. No markdown, no code blocks, no explanation.`
       res.on('end', () => {
         try {
           const result = JSON.parse(data);
+          if (result.error) {
+            reject(new Error(`API error: ${result.error.message}`));
+            return;
+          }
           const content = result.choices[0].message.content;
           const cleanJson = content.replace(/```json\n?|\n?```/g, '').trim();
           resolve(JSON.parse(cleanJson));
