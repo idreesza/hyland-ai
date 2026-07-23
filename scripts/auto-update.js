@@ -44,7 +44,7 @@ Return ONLY a JSON object with these exact fields:
 Return raw JSON only. No markdown, no code blocks, no explanation.`
         }
       ],
-      temperature: 0.3
+      temperature: 1
     });
 
     const options = {
