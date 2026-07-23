@@ -10,7 +10,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 function callKimi(platformName, scrapedData) {
   return new Promise((resolve, reject) => {
     const postData = JSON.stringify({
-      model: 'kimi-moonshot-v1-8k',
+      model: 'kimi-k2-0711-preview',
       messages: [
         {
           role: 'system',
